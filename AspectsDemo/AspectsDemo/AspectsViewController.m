@@ -2,33 +2,44 @@
 //  AspectsViewController.m
 //  AspectsDemo
 //
-//  Created by Peter Steinberger on 05/05/14.
-//  Copyright (c) 2014 PSPDFKit GmbH. All rights reserved.
+//  Created by DMW_W on 2017/6/14.
+//  Copyright © 2017年 PSPDFKit GmbH. All rights reserved.
 //
 
 #import "AspectsViewController.h"
 #import "Aspects.h"
 
+@interface AspectsViewController ()
+
+@end
+
 @implementation AspectsViewController
 
-- (IBAction)buttonPressed:(id)sender {
-    UIViewController *testController = [[UIImagePickerController alloc] init];
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    self.view.backgroundColor = [UIColor whiteColor];
+    
+    UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
+    [self.view addSubview:button];
+    [button setTitle:@"tap" forState:UIControlStateNormal];
+    [button setTitleColor:[UIColor redColor] forState:UIControlStateNormal];
+    button.frame = CGRectMake(100, 100, 100, 100);
+    [button addTarget:self action:@selector(buttonPressed:) forControlEvents:UIControlEventTouchUpInside];
+}
 
-    testController.modalPresentationStyle = UIModalPresentationFormSheet;
-    [self presentViewController:testController animated:YES completion:NULL];
 
-    // We are interested in being notified when the controller is being dismissed.
-    [testController aspect_hookSelector:@selector(viewWillDisappear:) withOptions:0 usingBlock:^(id<AspectInfo> info, BOOL animated) {
-        UIViewController *controller = [info instance];
-        if (controller.isBeingDismissed || controller.isMovingFromParentViewController) {
-            [[[UIAlertView alloc] initWithTitle:@"Popped" message:@"Hello from Aspects" delegate:nil cancelButtonTitle:nil otherButtonTitles:@"Ok", nil] show];
-        }
-    } error:NULL];
+- (void)buttonPressed:(UIButton *)sender {
+    AspectsViewController *vc = [[AspectsViewController alloc] init];
+    vc.view.backgroundColor = [UIColor whiteColor];
+    [self presentViewController:vc animated:YES completion:^{
+        [vc aspect_hookSelector:@selector(buttonPressed:) withOptions:0 usingBlock:^(id info) {
+            NSLog(@"bind self button2");
+        } error:NULL];
+    }];
+}
 
-    // Hooking dealloc is delicate, only AspectPositionBefore will work here.
-    [testController aspect_hookSelector:NSSelectorFromString(@"dealloc") withOptions:AspectPositionBefore usingBlock:^(id<AspectInfo> info) {
-        NSLog(@"Controller is about to be deallocated: %@", [info instance]);
-    } error:NULL];
++ (void)test {
+    NSLog(@"test");
 }
 
 @end

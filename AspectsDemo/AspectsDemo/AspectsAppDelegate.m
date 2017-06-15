@@ -9,6 +9,7 @@
 #import "AspectsAppDelegate.h"
 #import "AspectsViewController.h"
 #import "Aspects.h"
+#import <objc/runtime.h>
 
 @implementation AspectsAppDelegate
 
@@ -18,15 +19,18 @@
     self.window.backgroundColor = [UIColor whiteColor];
     self.window.rootViewController = [[UINavigationController alloc] initWithRootViewController:aspectsController];
     [self.window makeKeyAndVisible];
+    
+    [self addObserver:aspectsController forKeyPath:@"view" options:NSKeyValueObservingOptionNew context:nil];
 
     // Ignore hooks when we are testing.
     if (!NSClassFromString(@"XCTestCase")) {
-        [aspectsController aspect_hookSelector:@selector(buttonPressed:) withOptions:0 usingBlock:^(id info, id sender) {
-            NSLog(@"Button was pressed by: %@", sender);
+        
+        [aspectsController aspect_hookSelector:@selector(buttonPressed:) withOptions:0 usingBlock:^(id<AspectInfo> info, id sender) {
+            NSLog(@"arg = %@",info.arguments);
         } error:NULL];
-
-        [aspectsController aspect_hookSelector:@selector(viewWillLayoutSubviews) withOptions:0 usingBlock:^{
-            NSLog(@"Controller is layouting!");
+        
+        [aspectsController aspect_hookSelector:@selector(buttonPressed:) withOptions:0 usingBlock:^() {
+            NSLog(@"bind class button");
         } error:NULL];
     }
 

@@ -6,10 +6,13 @@
 //
 
 #import <Foundation/Foundation.h>
-
+// 替换方法模式
 typedef NS_OPTIONS(NSUInteger, AspectOptions) {
+    // 在调用原始方法时候，先调用block
     AspectPositionAfter   = 0,            /// Called after the original implementation (default)
+    // 替换法方法现实
     AspectPositionInstead = 1,            /// Will replace the original implementation.
+    // 在调用block后，在调用原始方法
     AspectPositionBefore  = 2,            /// Called before the original implementation.
     
     AspectOptionAutomaticRemoval = 1 << 3 /// Will remove the hook after the first execution.
@@ -28,12 +31,15 @@ typedef NS_OPTIONS(NSUInteger, AspectOptions) {
 @protocol AspectInfo <NSObject>
 
 /// The instance that is currently hooked.
+// 当前被hook的实例
 - (id)instance;
 
 /// The original invocation of the hooked method.
+// 被hook的方法的原始Invocation
 - (NSInvocation *)originalInvocation;
 
 /// All method arguments, boxed. This is lazily evaluated.
+// 返回方法的所有参数，懒加载
 - (NSArray *)arguments;
 
 @end
@@ -67,7 +73,7 @@ typedef NS_OPTIONS(NSUInteger, AspectOptions) {
 
 @end
 
-
+// Aspect的错误码
 typedef NS_ENUM(NSUInteger, AspectErrorCode) {
     AspectErrorSelectorBlacklisted,                   /// Selectors like release, retain, autorelease are blacklisted.
     AspectErrorDoesNotRespondToSelector,              /// Selector could not be found.
