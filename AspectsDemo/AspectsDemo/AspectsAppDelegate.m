@@ -25,11 +25,11 @@
     // Ignore hooks when we are testing.
     if (!NSClassFromString(@"XCTestCase")) {
         
-        [aspectsController aspect_hookSelector:@selector(buttonPressed:) withOptions:0 usingBlock:^(id<AspectInfo> info, id sender) {
+        [AspectsViewController aspect_hookSelector:@selector(buttonPressed:) withOptions:0 usingBlock:^(id<AspectInfo> info, id sender) {
             NSLog(@"arg = %@",info.arguments);
         } error:NULL];
         
-        [aspectsController aspect_hookSelector:@selector(buttonPressed:) withOptions:0 usingBlock:^() {
+        [AspectsViewController aspect_hookSelector:@selector(buttonPressed:) withOptions:0 usingBlock:^() {
             NSLog(@"bind class button");
         } error:NULL];
     }

@@ -426,8 +426,8 @@ static void aspect_cleanupHookedClassAndSelector(NSObject *self, SEL selector) {
  */
 static Class aspect_hookClass(NSObject *self, NSError **error) {
     NSCParameterAssert(self);
-	Class statedClass = self.class;
-	Class baseClass = object_getClass(self);
+	Class statedClass = self.class;         // -(id)class方法
+	Class baseClass = object_getClass(self);// 获取isa
 	NSString *className = NSStringFromClass(baseClass);
 
     // Already subclassed
@@ -461,10 +461,10 @@ static Class aspect_hookClass(NSObject *self, NSError **error) {
         // 就像KVO一样伪装
 		aspect_hookedGetClass(subclass, statedClass);
 		aspect_hookedGetClass(object_getClass(subclass), statedClass);
-        
+        // 注册
 		objc_registerClassPair(subclass);
 	}
-
+    // 将self对象的isa指向子类
 	object_setClass(self, subclass);
 	return subclass;
 }
@@ -563,6 +563,7 @@ static void __ASPECTS_ARE_BEING_CALLED__(__unsafe_unretained NSObject *self, SEL
     NSCParameterAssert(invocation);
     SEL originalSelector = invocation.selector;
 	SEL aliasSelector = aspect_aliasForSelector(invocation.selector);
+    // 如果originalSelector被hook过，那么invocation的实际selector是aliasSelector
     // 替换invocation的selector，为了[invocation invoke] 调用原来的方法
     invocation.selector = aliasSelector;
     // 获取绑定在self中的aliasSelector
@@ -600,7 +601,9 @@ static void __ASPECTS_ARE_BEING_CALLED__(__unsafe_unretained NSObject *self, SEL
     // If no hooks are installed, call original implementation (usually to throw an exception)
     /**调用一个没有实现的selector会触发 自动消息转发，在这种情况下整个继承链中都不会响应aliasSelector也就导致respondsToAlias=false, 开始执行下面的方法*/
     if (!respondsToAlias) {
+        // 如果没有被调用，说明 originalSelector 没有被hook，所以将invocation.selector 改回来
         invocation.selector = originalSelector;
+        // 原来的forwardInvocation
         SEL originalForwardInvocationSEL = NSSelectorFromString(AspectsForwardInvocationSelectorName);
         // 如果实现了forwardInvocation,执行原来的消息转发，否则调用doesNotRecognizeSelector，抛出异常。
         if ([self respondsToSelector:originalForwardInvocationSEL]) {

@@ -29,7 +29,6 @@ typedef NS_OPTIONS(NSUInteger, AspectOptions) {
 
 /// The AspectInfo protocol is the first parameter of our block syntax.
 @protocol AspectInfo <NSObject>
-
 /// The instance that is currently hooked.
 // 当前被hook的实例
 - (id)instance;
@@ -37,7 +36,6 @@ typedef NS_OPTIONS(NSUInteger, AspectOptions) {
 /// The original invocation of the hooked method.
 // 被hook的方法的原始Invocation
 - (NSInvocation *)originalInvocation;
-
 /// All method arguments, boxed. This is lazily evaluated.
 // 返回方法的所有参数，懒加载
 - (NSArray *)arguments;
