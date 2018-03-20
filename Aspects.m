@@ -156,7 +156,8 @@ static id aspect_add(id self, SEL selector, AspectOptions options, id block, NSE
             identifier = [AspectIdentifier identifierWithSelector:selector
                                                            object:self
                                                           options:options
-                                                            block:block error:error];
+                                                            block:block
+                                                            error:error];
             if (identifier) {
                 // 将aspect添加到容器中
                 [aspectContainer addAspect:identifier withOptions:options];
@@ -242,11 +243,13 @@ static BOOL aspect_isCompatibleBlockSignature(NSMethodSignature *blockSignature,
     // object不管是对象还是class，[object class]最终会拿到class
     // 获取实例方法的签名
     NSMethodSignature *methodSignature = [[object class] instanceMethodSignatureForSelector:selector];
-    
     if (blockSignature.numberOfArguments > methodSignature.numberOfArguments) {
+        // 如果block的参数大于select的参数
         signaturesMatch = NO;
     }else {
         if (blockSignature.numberOfArguments > 1) {
+            // 如果block有参数，并且第一个参数不是对象类型就返回NO
+            // 因为第2个参数(第一个参数默认是self)必须是 id<AspectInfo> aspectInfo
             const char *blockType = [blockSignature getArgumentTypeAtIndex:1];
             if (blockType[0] != '@') {
                 signaturesMatch = NO;
@@ -256,6 +259,7 @@ static BOOL aspect_isCompatibleBlockSignature(NSMethodSignature *blockSignature,
         // The block can have less arguments than the method, that's ok.
         if (signaturesMatch) {
             for (NSUInteger idx = 2; idx < blockSignature.numberOfArguments; idx++) {
+                // 比较除了前两个参数外，其余的参数类型是否一致
                 const char *methodType = [methodSignature getArgumentTypeAtIndex:idx];
                 const char *blockType = [blockSignature getArgumentTypeAtIndex:idx];
                 // Only compare parameter, not the optional type data.
@@ -442,9 +446,10 @@ static Class aspect_hookClass(NSObject *self, NSError **error) {
         return aspect_swizzleClassInPlace((Class)self);
         // Probably a KVO'ed class. Swizzle in place. Also swizzle meta classes in place.
     }else if (statedClass != baseClass) {
+        // 如果是一个没有被监听过(KVO)的对象那么 statedClass == baseClass
         return aspect_swizzleClassInPlace(baseClass);
     }
-
+    // 如果是一个没有对KVO的实例对象(注意不是class对象)
     // Default case. Create dynamic subclass.
 	const char *subclassName = [className stringByAppendingString:AspectsSubclassSuffix].UTF8String;
 	Class subclass = objc_getClass(subclassName);
@@ -624,13 +629,14 @@ static void __ASPECTS_ARE_BEING_CALLED__(__unsafe_unretained NSObject *self, SEL
 // Loads or creates the aspect container.
 static AspectsContainer *aspect_getContainerForObject(NSObject *self, SEL selector) {
     NSCParameterAssert(self);
-    // 获取selector名字
+    // 生成中间的SEL
     SEL aliasSelector = aspect_aliasForSelector(selector);
     // 从self中，获取AspectsContainer
     AspectsContainer *aspectContainer = objc_getAssociatedObject(self, aliasSelector);
     if (!aspectContainer) {
         // 如果没有AspectsContainer，就创建一个，并添加
         aspectContainer = [AspectsContainer new];
+        // 以 aliasSelector 为 key 存储 aspectContainer
         objc_setAssociatedObject(self, aliasSelector, aspectContainer, OBJC_ASSOCIATION_RETAIN);
     }
     return aspectContainer;
@@ -703,10 +709,13 @@ static BOOL aspect_isSelectorAllowedAndTrack(NSObject *self, SEL selector, Aspec
 
     // Search for the current class and the class hierarchy IF we are modifying a class object
     // class_isMetaClass 先判断是不是元类。接下来的判断都是判断元类里面能否允许被替换方法。
+    // self 为 Class 那么 object_getClass(self) 是元类
+    // self 为 对象   那么 object_getClass(self) 是类
     if (class_isMetaClass(object_getClass(self))) {
+        // 当前类
         Class klass = [self class];
         NSMutableDictionary *swizzledClassesDict = aspect_getSwizzledClassesDict();
-        // 当前的元类
+        // 当前类
         Class currentClass = [self class];
 
         AspectTracker *tracker = swizzledClassesDict[currentClass];
@@ -740,18 +749,22 @@ static BOOL aspect_isSelectorAllowedAndTrack(NSObject *self, SEL selector, Aspec
         do {
             tracker = swizzledClassesDict[currentClass];
             if (!tracker) {
+                // 根据当前类生成 tracker 对象
                 tracker = [[AspectTracker alloc] initWithTrackedClass:currentClass];
+                // 保存起来
                 swizzledClassesDict[(id<NSCopying>)currentClass] = tracker;
             }
             if (subclassTracker) {
                 [tracker addSubclassTracker:subclassTracker hookingSelectorName:selectorName];
             } else {
+                // 存取hook的方法
                 [tracker.selectorNames addObject:selectorName];
             }
 
             // All superclasses get marked as having a subclass that is modified.
             // 所有父类被标记为具有修改的子类。
             subclassTracker = tracker;
+            // 拿到父类
         }while ((currentClass = class_getSuperclass(currentClass)));
 	} else {
 		return YES;
@@ -926,7 +939,7 @@ static void aspect_deregisterTrackedSelector(id self, SEL selector) {
     NSCParameterAssert(selector);
     // 获取block的方法签名
     NSMethodSignature *blockSignature = aspect_blockMethodSignature(block, error); // TODO: check signature compatibility, etc.
-    //
+    // 根据block的签名和要hook的selector对比，判断是否能hook
     if (!aspect_isCompatibleBlockSignature(blockSignature, object, selector, error)) {
         return nil;
     }
@@ -967,21 +980,26 @@ static void aspect_deregisterTrackedSelector(id self, SEL selector) {
     // 将originalInvocation中的参数取出来赋值到blockInvocation中
 	void *argBuf = NULL;
     for (NSUInteger idx = 2; idx < numberOfArguments; idx++) {
+        // 参数类型
         const char *type = [originalInvocation.methodSignature getArgumentTypeAtIndex:idx];
 		NSUInteger argSize;
+        // 类型占用的大小
 		NSGetSizeAndAlignment(type, &argSize, NULL);
-        
+        // 为argBuf分配argSize大小的内存
 		if (!(argBuf = reallocf(argBuf, argSize))) {
             AspectLogError(@"Failed to allocate memory for block invocation.");
 			return NO;
 		}
+        // 获取值
 		[originalInvocation getArgument:argBuf atIndex:idx];
+        // 赋值
 		[blockInvocation setArgument:argBuf atIndex:idx];
     }
     // 这里Target设置为self.block。也就执行了我们hook方法的block
     [blockInvocation invokeWithTarget:self.block];
     
     if (argBuf != NULL) {
+        // 释放空间
         free(argBuf);
     }
     return YES;
