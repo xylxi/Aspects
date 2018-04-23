@@ -711,6 +711,9 @@ static BOOL aspect_isSelectorAllowedAndTrack(NSObject *self, SEL selector, Aspec
     // class_isMetaClass 先判断是不是元类。接下来的判断都是判断元类里面能否允许被替换方法。
     // self 为 Class 那么 object_getClass(self) 是元类
     // self 为 对象   那么 object_getClass(self) 是类
+    /**
+     *   如果同时 hook 了基类和子类的同一个方法，且子类调用了基类的方法，就会导致循环调用。因为调用 super 方法时，传入的 target 还是 self 对象，导致调用了子类的方法。好在这里并不允许同时 hook 一条继承链上的两个类，因为子类和基类限制频率的规则会相互干扰，导致不易发现的 bug。
+     */
     if (class_isMetaClass(object_getClass(self))) {
         // 当前类
         Class klass = [self class];
@@ -921,7 +924,6 @@ static void aspect_deregisterTrackedSelector(id self, SEL selector) {
 - (NSArray *)aspects_arguments {
 	NSMutableArray *argumentsArray = [NSMutableArray array];
 	for (NSUInteger idx = 2; idx < self.methodSignature.numberOfArguments; idx++) {
-        NSLog(@"idx=%@",[self aspect_argumentAtIndex:idx]);
 		[argumentsArray addObject:[self aspect_argumentAtIndex:idx] ?: NSNull.null];
 	}
 	return [argumentsArray copy];

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		6F8511BB208DA4700050AA79 /* NSInvocation+Block.m in Sources */ = {isa = PBXBuildFile; fileRef = 6F8511BA208DA46F0050AA79 /* NSInvocation+Block.m */; };
 		6FD8FCF41EF133CD000D29E8 /* AspectsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 6FD8FCF31EF133CD000D29E8 /* AspectsViewController.m */; };
 		78573EF519155A2E000D3B00 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 78573EF419155A2E000D3B00 /* Foundation.framework */; };
 		78573EF719155A2E000D3B00 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 78573EF619155A2E000D3B00 /* CoreGraphics.framework */; };
@@ -34,6 +35,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		6F8511B9208DA46F0050AA79 /* NSInvocation+Block.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSInvocation+Block.h"; sourceTree = "<group>"; };
+		6F8511BA208DA46F0050AA79 /* NSInvocation+Block.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSInvocation+Block.m"; sourceTree = "<group>"; };
 		6FD8FCF21EF133CD000D29E8 /* AspectsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AspectsViewController.h; sourceTree = "<group>"; };
 		6FD8FCF31EF133CD000D29E8 /* AspectsViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AspectsViewController.m; sourceTree = "<group>"; };
 		78573EF119155A2E000D3B00 /* AspectsDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AspectsDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -119,6 +122,8 @@
 				78573F0419155A2E000D3B00 /* AspectsAppDelegate.m */,
 				6FD8FCF21EF133CD000D29E8 /* AspectsViewController.h */,
 				6FD8FCF31EF133CD000D29E8 /* AspectsViewController.m */,
+				6F8511B9208DA46F0050AA79 /* NSInvocation+Block.h */,
+				6F8511BA208DA46F0050AA79 /* NSInvocation+Block.m */,
 				78573F0619155A2E000D3B00 /* Images.xcassets */,
 				78573EFB19155A2E000D3B00 /* Supporting Files */,
 			);
@@ -250,6 +255,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6F8511BB208DA4700050AA79 /* NSInvocation+Block.m in Sources */,
 				6FD8FCF41EF133CD000D29E8 /* AspectsViewController.m in Sources */,
 				78573F0519155A2E000D3B00 /* AspectsAppDelegate.m in Sources */,
 				78573F2519155A74000D3B00 /* Aspects.m in Sources */,

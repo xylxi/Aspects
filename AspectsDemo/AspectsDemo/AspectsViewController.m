@@ -8,6 +8,7 @@
 
 #import "AspectsViewController.h"
 #import "Aspects.h"
+#import "NSInvocation+Block.h"
 
 @interface AspectsViewController ()
 
@@ -25,6 +26,13 @@
     [button setTitleColor:[UIColor redColor] forState:UIControlStateNormal];
     button.frame = CGRectMake(100, 100, 100, 100);
     [button addTarget:self action:@selector(buttonPressed:) forControlEvents:UIControlEventTouchUpInside];
+    
+    void (^myBlock)(id, NSArray*,double, int**) = ^(id obj1, NSArray* array, double dNum,int** pi) {
+        NSLog(@"%@,Hey!",obj1);
+    };
+    int* i = NULL;
+    NSInvocation* inv = [NSInvocation invocationWithBlockAndArguments:myBlock,[NSObject new],@[@1,@2,@3],1.23,&i];
+    [inv invoke];
 }
 
 
